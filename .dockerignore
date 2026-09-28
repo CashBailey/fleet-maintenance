@@ -1,0 +1,21 @@
+# Docker does not read .gitignore. Patterns match from the context root, so
+# nested caches need **/ prefixes.
+.git/
+.venv/
+node_modules/
+.e2e/
+.tools/
+artifacts/
+graphify-out/
+.remember/
+backend/staticfiles/
+backend/media/
+backend/frontend_dist/
+backend/.coverage
+docs/
+**/__pycache__/
+**/*.pyc
+**/.mypy_cache/
+**/.ruff_cache/
+**/.pytest_cache/
+**/*.tsbuildinfo

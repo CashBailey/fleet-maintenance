@@ -1,0 +1,5 @@
+# Intentionally broken messages, plus one good one at the end.
+{"schemaVersion":"0.9","messageId":"bad-schema","organizationId":"{{organizationId}}","deviceId":"{{deviceId}}","observedAt":"2026-08-22T10:00:00+00:00","source":"autopi","type":"telemetry","values":{"odometer":{"value":121100,"unit":"mi"}}}
+{"schemaVersion":"1.0","messageId":"no-observed-at","organizationId":"{{organizationId}}","deviceId":"{{deviceId}}","source":"autopi","type":"telemetry","values":{"odometer":{"value":121100,"unit":"mi"}}}
+{"schemaVersion":"1.0","messageId":"bad-unit","organizationId":"{{organizationId}}","deviceId":"{{deviceId}}","observedAt":"2026-08-22T10:10:00+00:00","source":"autopi","type":"telemetry","values":{"odometer":{"value":121100,"unit":"furlongs"}}}
+{"schemaVersion":"1.0","messageId":"good-one","organizationId":"{{organizationId}}","deviceId":"{{deviceId}}","observedAt":"2026-08-22T10:20:00+00:00","source":"autopi","type":"telemetry","values":{"odometer":{"value":121100,"unit":"mi"}}}

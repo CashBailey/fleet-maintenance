@@ -1,0 +1,2 @@
+{"schemaVersion":"1.0","messageId":"ooo-later","organizationId":"{{organizationId}}","deviceId":"{{deviceId}}","observedAt":"2026-08-23T14:00:00+00:00","sentAt":"2026-08-23T14:00:05+00:00","source":"autopi","type":"telemetry","values":{"odometer":{"value":121500,"unit":"mi"}}}
+{"schemaVersion":"1.0","messageId":"ooo-earlier","organizationId":"{{organizationId}}","deviceId":"{{deviceId}}","observedAt":"2026-08-23T08:00:00+00:00","sentAt":"2026-08-23T14:00:05+00:00","source":"autopi","type":"telemetry","values":{"odometer":{"value":121300,"unit":"mi"}}}

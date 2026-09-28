@@ -1,0 +1,38 @@
+{
+  "name": "fleetline",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "license": "UNLICENSED",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1",
+    "build": "tsc -b && vite build",
+    "typecheck": "tsc -b --pretty false",
+    "lint": "eslint frontend/src tests/e2e vite.config.ts playwright.config.ts",
+    "test:e2e": "bash scripts/test-e2e.sh",
+    "test:e2e:smoke": "FLEETLINE_E2E_PARTIAL=1 bash scripts/test-e2e.sh --grep @smoke",
+    "sbom": "npm sbom --sbom-format cyclonedx > artifacts/sbom-npm.cdx.json"
+  },
+  "dependencies": {
+    "lucide-react": "1.40.0",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "react-router-dom": "7.18.3"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "4.13.0",
+    "@eslint/js": "10.0.1",
+    "@playwright/test": "1.62.1",
+    "@types/node": "26.4.1",
+    "@types/react": "19.2.18",
+    "@types/react-dom": "19.2.7",
+    "@vitejs/plugin-react": "6.1.1",
+    "eslint": "10.9.1",
+    "eslint-plugin-react-hooks": "7.1.1",
+    "eslint-plugin-react-refresh": "0.5.6",
+    "globals": "17.12.0",
+    "typescript": "6.0.3",
+    "typescript-eslint": "8.69.0",
+    "vite": "8.2.2"
+  }
+}

@@ -1,0 +1,47 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# Type / lint / test caches (these nest — match at any depth)
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Node
+node_modules/
+*.tsbuildinfo
+
+# Generated application output
+backend/staticfiles/
+backend/frontend_dist/
+backend/media/
+dist/
+
+# Local runtime, test and tooling data
+.tools/
+.e2e/
+artifacts/
+graphify-out/
+.remember/
+*.log
+
+# Secrets and local configuration — .env.example IS committed, real .env is not
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.gpg
+mfa.json
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp

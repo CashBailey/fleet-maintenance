@@ -1,0 +1,9 @@
+Django==5.2.17
+djangorestframework==3.18.0
+drf-spectacular==0.30.0
+gunicorn==23.0.0
+psycopg[binary]==3.3.5
+pypdf==6.16.2
+pypdfium2==5.13.0
+Pillow==12.3.0
+whitenoise==6.12.0

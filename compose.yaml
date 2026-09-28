@@ -1,0 +1,136 @@
+services:
+  db:
+    image: postgres:16.15-bookworm
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: fleetline
+      POSTGRES_USER: fleetline
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U fleetline -d fleetline"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  migrate:
+    build: .
+    command: ["python", "manage.py", "migrate", "--noinput"]
+    environment: &app-env
+      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY:?set DJANGO_SECRET_KEY}
+      POSTGRES_HOST: db
+      POSTGRES_DB: fleetline
+      POSTGRES_USER: fleetline
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD}
+      MEDIA_ROOT: /data/media
+      ALLOWED_HOSTS: ${ALLOWED_HOSTS:-127.0.0.1,localhost}
+      CSRF_TRUSTED_ORIGINS: ${CSRF_TRUSTED_ORIGINS:-https://localhost}
+      DJANGO_DEBUG: ${DJANGO_DEBUG:-0}
+      COOKIE_SECURE: ${COOKIE_SECURE:-1}
+      SESSION_COOKIE_AGE: ${SESSION_COOKIE_AGE:-28800}
+      LOGIN_ATTEMPT_LIMIT: ${LOGIN_ATTEMPT_LIMIT:-5}
+      LOGIN_ATTEMPT_WINDOW_SECONDS: ${LOGIN_ATTEMPT_WINDOW_SECONDS:-300}
+      LOGIN_LOCKOUT_SECONDS: ${LOGIN_LOCKOUT_SECONDS:-900}
+      SECURE_SSL_REDIRECT: ${SECURE_SSL_REDIRECT:-1}
+      SECURE_HSTS_SECONDS: ${SECURE_HSTS_SECONDS:-0}
+      SECURE_HSTS_INCLUDE_SUBDOMAINS: ${SECURE_HSTS_INCLUDE_SUBDOMAINS:-0}
+      SECURE_HSTS_PRELOAD: ${SECURE_HSTS_PRELOAD:-0}
+      TRUST_PROXY_HEADERS: ${TRUST_PROXY_HEADERS:-1}
+      FLEETLINE_SITE_ADDRESS: ${FLEETLINE_SITE_ADDRESS:-localhost}
+      DB_CONN_MAX_AGE: ${DB_CONN_MAX_AGE:-60}
+      TIME_ZONE: ${TIME_ZONE:-America/Chicago}
+      OFFLINE_CACHE_HOURS: ${OFFLINE_CACHE_HOURS:-24}
+      ATTACHMENT_MAX_BYTES: ${ATTACHMENT_MAX_BYTES:-10485760}
+      DOCUMENT_MAX_BYTES: ${DOCUMENT_MAX_BYTES:-104857600}
+      DOCUMENT_MAX_PAGES: ${DOCUMENT_MAX_PAGES:-500}
+      DOCUMENT_COMMAND_TIMEOUT_SECONDS: ${DOCUMENT_COMMAND_TIMEOUT_SECONDS:-30}
+      DOCUMENT_PROCESS_TIMEOUT_SECONDS: ${DOCUMENT_PROCESS_TIMEOUT_SECONDS:-180}
+      DOCUMENT_MAX_PAGE_TEXT_BYTES: ${DOCUMENT_MAX_PAGE_TEXT_BYTES:-524288}
+      DOCUMENT_MAX_TOTAL_TEXT_BYTES: ${DOCUMENT_MAX_TOTAL_TEXT_BYTES:-16777216}
+      DOCUMENT_MAX_OCR_IMAGE_BYTES: ${DOCUMENT_MAX_OCR_IMAGE_BYTES:-16777216}
+      DOCUMENT_MAX_OCR_TSV_BYTES: ${DOCUMENT_MAX_OCR_TSV_BYTES:-2097152}
+      DOCUMENT_MAX_OCR_PIXELS: ${DOCUMENT_MAX_OCR_PIXELS:-20000000}
+      TESSDATA_PREFIX: ${TESSDATA_PREFIX:-/usr/share/tesseract-ocr/5/tessdata}
+      STAGED_ATTACHMENT_MAX_COUNT: ${STAGED_ATTACHMENT_MAX_COUNT:-25}
+      STAGED_ATTACHMENT_MAX_BYTES: ${STAGED_ATTACHMENT_MAX_BYTES:-52428800}
+      STAGED_ATTACHMENT_TTL_HOURS: ${STAGED_ATTACHMENT_TTL_HOURS:-24}
+      PO_APPROVAL_THRESHOLD: ${PO_APPROVAL_THRESHOLD:-1000.00}
+      INVENTORY_COUNT_VARIANCE_APPROVAL_THRESHOLD: ${INVENTORY_COUNT_VARIANCE_APPROVAL_THRESHOLD:-0.00}
+      METER_MAX_MILES_PER_HOUR: ${METER_MAX_MILES_PER_HOUR:-100.0}
+      METER_MAX_ENGINE_HOURS_PER_HOUR: ${METER_MAX_ENGINE_HOURS_PER_HOUR:-1.25}
+      METER_FUTURE_TOLERANCE_SECONDS: ${METER_FUTURE_TOLERANCE_SECONDS:-300}
+      TELEMATICS_MAX_BODY_BYTES: ${TELEMATICS_MAX_BODY_BYTES:-1048576}
+      TELEMATICS_MAX_DIAGNOSTICS: ${TELEMATICS_MAX_DIAGNOSTICS:-100}
+      WEBHOOK_ALLOW_HTTP: ${WEBHOOK_ALLOW_HTTP:-0}
+      WEBHOOK_ALLOW_PRIVATE_NETWORKS: ${WEBHOOK_ALLOW_PRIVATE_NETWORKS:-0}
+      WEBHOOK_MAX_SUBSCRIPTIONS: ${WEBHOOK_MAX_SUBSCRIPTIONS:-20}
+      WEBHOOK_MAX_EVENT_TYPES: ${WEBHOOK_MAX_EVENT_TYPES:-25}
+      WEBHOOK_DELIVERY_TIMEOUT_SECONDS: ${WEBHOOK_DELIVERY_TIMEOUT_SECONDS:-5}
+      REQUIRE_WORKER: ${REQUIRE_WORKER:-1}
+      PM_RECALCULATION_INTERVAL_SECONDS: ${PM_RECALCULATION_INTERVAL_SECONDS:-3600}
+    depends_on:
+      db:
+        condition: service_healthy
+
+  app:
+    build: .
+    restart: unless-stopped
+    environment: *app-env
+    volumes:
+      - attachment-data:/data/media
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import os, urllib.request; urllib.request.urlopen(urllib.request.Request('http://127.0.0.1:8088/health/ready', headers={'Host':os.environ['ALLOWED_HOSTS'].split(',')[0].strip(),'X-Forwarded-Proto':'https'}))"
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  worker:
+    build: .
+    command: ["python", "manage.py", "runworker"]
+    restart: unless-stopped
+    read_only: true
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    tmpfs:
+      - /tmp:rw,nosuid,nodev,noexec,size=256m,mode=1777
+    mem_limit: 768m
+    cpus: 1.0
+    environment: *app-env
+    volumes:
+      - attachment-data:/data/media:ro
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+
+  proxy:
+    image: caddy:2.11-alpine
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8080:8080"
+      - "80:80"
+      - "443:443"
+    environment:
+      FLEETLINE_SITE_ADDRESS: ${FLEETLINE_SITE_ADDRESS:-localhost}
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      app:
+        condition: service_healthy
+
+volumes:
+  postgres-data:
+  attachment-data:
+  caddy-data:
+  caddy-config:

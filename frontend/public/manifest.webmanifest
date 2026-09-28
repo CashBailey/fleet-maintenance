@@ -1,0 +1,10 @@
+{
+  "name": "Fleetline Maintenance",
+  "short_name": "Fleetline",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#13263a",
+  "icons": []
+}
+
